@@ -37,6 +37,7 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.sql.Connection;
 
+import java.sql.DriverManager;
 import java.util.*;
 
 public class JDAO
@@ -155,7 +156,72 @@ public class JDAO
 		}
 		return dataSource;
 	}
-
+	
+	public static DataSource createDataSourceByProperties(Class clazz, Properties properties)
+	{
+		try
+		{
+			DataSource dataSource = null;
+			dataSource = (DataSource)clazz.newInstance();
+			BeanUtils.populate(dataSource, (Map)properties);
+			return dataSource;
+		}
+		catch(Exception xe)
+		{
+			log("Error processing datasource class: "+clazz.getCanonicalName(), xe);
+			return null;
+		}
+	}
+	
+	public static DataSource createDataSourceByProperties(String clazz, Properties properties)
+	{
+		try
+		{
+			return JDAO.createDataSourceByProperties(Class.forName(clazz, true, Thread.currentThread().getContextClassLoader()), properties);
+		}
+		catch(Exception xe)
+		{
+			log("Error processing datasource class: "+clazz, xe);
+			return null;
+		}
+	}
+	
+	public static Connection createConnectionByDriverSpec(String driverclazz, String jdbcUri, String userName, String password)
+	{
+		try
+		{
+			if(driverclazz!=null && !driverclazz.equalsIgnoreCase(""))
+			{
+				Class.forName(driverclazz, true, Thread.currentThread().getContextClassLoader());
+			}
+			return DriverManager.getConnection(jdbcUri, userName, password);
+		}
+		catch(Exception xe)
+		{
+			log("Error : ", xe);
+			return null;
+		}
+	}
+	
+	public static Connection createConnectionByDataSourceSpec(String dsclazz, String jdbcUri, String userName, String password)
+	{
+		try
+		{
+			if(dsclazz!=null && !dsclazz.equalsIgnoreCase(""))
+			{
+				DataSource ds = (DataSource)Class.forName(dsclazz, true, Thread.currentThread().getContextClassLoader()).newInstance();
+				BeanUtils.setProperty(ds, "url", jdbcUri);
+				return ds.getConnection(userName, password);
+			}
+			return DriverManager.getConnection(jdbcUri, userName, password);
+		}
+		catch(Exception xe)
+		{
+			log("Error : ", xe);
+			return null;
+		}
+	}
+	
 	public static void log(String text)
 	{
 		LOG.info(text);
