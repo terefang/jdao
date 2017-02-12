@@ -12,4 +12,4 @@ Java Database Access Object -- not another ORM layer
 
  Connection conn = JDAO.createConnectionByDriverSpec("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3307/test", "sa", "sa");
  JDAO dao = JDAO.createDaoFromConnection(conn, false);
- List rows = JDAO.queryForList("SELECT * FROM Test_User_Table WHERE UserName = ?", "stiger");
+ List rows = dao.queryForList("SELECT * FROM Test_User_Table WHERE UserName = ?", "stiger");
