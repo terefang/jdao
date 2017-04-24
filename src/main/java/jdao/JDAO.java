@@ -1980,6 +1980,54 @@ public class JDAO
 		return JDAO.insert(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate, updateCols);
 	}
 	
+	public void setAutoCommit(boolean ac)
+	{
+		try
+		{
+			if(conn!=null)
+			{
+				conn.setAutoCommit(ac);
+			}
+		}
+		catch(Exception xe) {}
+	}
+	
+	public void beginTransaction()
+	{
+		try
+		{
+			if(conn!=null)
+			{
+				conn.setAutoCommit(false);
+			}
+		}
+		catch(Exception xe) {}
+	}
+	
+	public void rollbackTransaction()
+	{
+		try
+		{
+			if(conn!=null)
+			{
+				conn.rollback();
+			}
+		}
+		catch(Exception xe) {}
+	}
+	
+	public void commitTransaction()
+	{
+		try
+		{
+			if(conn!=null)
+			{
+				conn.commit();
+			}
+		}
+		catch(Exception xe) {}
+	}
+		
 	public void close()
 	{
 		try
