@@ -10,6 +10,6 @@ Java Database Access Object -- not another ORM layer
 
 == Example ==
 
- Connection conn = JDAO.createConnectionByDriverSpec("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3307/test", "sa", "sa");
- JDAO dao = JDAO.createDaoFromConnection(conn, false);
- List rows = dao.queryForList("SELECT * FROM Test_User_Table WHERE UserName = ?", "stiger");
+    Connection conn = JDAO.createConnectionByDriverSpec("com.mysql.jdbc.Driver", "jdbc:mysql://127.0.0.1:3307/test", "sa", "sa");
+    JDAO dao = JDAO.createDaoFromConnection(conn, false);
+    List rows = dao.queryForList("SELECT * FROM Test_User_Table WHERE UserName = ?", "stiger");
