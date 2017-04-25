@@ -43,6 +43,16 @@ public class JDAO
 {
 	public static Log LOG = LogFactory.getLog(JDAO.class);
 	
+	public static Map<String, Object> toMap(Object... values)
+	{
+		Map<String, Object> ret = new HashMap();
+		for(int i=0; i<values.length; i+=2)
+		{
+			ret.put(String.valueOf(values[i]), values[i+1]);
+		}
+		return ret;
+	}
+	
 	public static final String PROP_DATASOURCE_CONFIG_SUFFIX = ".ds.properties";
 	
 	public static final String DEFAULT_JNDI_PATH = "java:ds";
