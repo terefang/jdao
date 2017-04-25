@@ -309,6 +309,10 @@ public class JDAO
 		{
 			if(dataSource==null)
 			{
+				if(properties.containsKey("jdaoDriverClassName"))
+				{
+					Class.forName(properties.getProperty("jdaoDriverClassName"));
+				}
 				if(properties.containsKey("jdaoDataSourceClassName"))
 				{
 					dataSource = (DataSource)Thread.currentThread().getContextClassLoader().loadClass(properties.getProperty("jdaoDataSourceClassName")).newInstance();
