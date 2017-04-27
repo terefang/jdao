@@ -15,8 +15,6 @@
  */
 package jdao;
 
-import jdao.util.*;
-
 import org.apache.commons.beanutils.BeanUtils;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -34,9 +32,8 @@ import javax.sql.DataSource;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
-import java.sql.Connection;
+import java.sql.*;
 
-import java.sql.DriverManager;
 import java.util.*;
 
 public class JDAO
@@ -2056,6 +2053,131 @@ public class JDAO
 		{
 			conn=null;
 			queryRunner=null;
+		}
+	}
+	
+	public static class KvListMapHandler implements ResultSetHandler<Map<String,List<String>>>
+	{
+		BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
+		
+		public KvListMapHandler() { super(); }
+		
+		public Map<String, List<String>> handle(ResultSet rs)
+				throws SQLException
+		{
+			Map<String, List<String>> ret = new LinkedHashMap<String, List<String>>();
+			while(rs.next())
+			{
+				Object[] row = basicRowProcessor.toArray(rs);
+				if(row.length>=2)
+				{
+					String key = String.valueOf(row[0]);
+					if(!ret.containsKey(key))
+					{
+						ret.put(key, new Vector<String>());
+					}
+					ret.get(key).add(String.valueOf(row[1]));
+				}
+			}
+			return ret;
+		}
+	}
+	
+	public static class KvMapHandler implements ResultSetHandler<Map<String,String>>
+	{
+		BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
+		
+		public KvMapHandler() { super(); }
+		
+		public Map<String, String> handle(ResultSet rs)
+				throws SQLException
+		{
+			Map<String, String> ret = new LinkedHashMap<String, String>();
+			while(rs.next())
+			{
+				Object[] row = basicRowProcessor.toArray(rs);
+				if(row.length>=2)
+				{
+					ret.put(String.valueOf(row[0]), String.valueOf(row[1]));
+				}
+			}
+			return ret;
+		}
+	}
+	
+	public static class BasicXRowProcessor extends BasicRowProcessor
+	{
+		
+		public BasicXRowProcessor() { super(); }
+		
+		@Override
+		public Map<String, Object> toMap(ResultSet rs) throws SQLException
+		{
+			Map result = new CaseInsensitiveHashMap();
+			ResultSetMetaData rsmd = rs.getMetaData();
+			int cols = rsmd.getColumnCount();
+			
+			for (int i = 1; i <= cols; i++) {
+				if(rsmd.getColumnLabel(i)!=null)
+				{
+					result.put(rsmd.getColumnLabel(i), rs.getObject(i));
+				}
+				else
+				{
+					result.put(rsmd.getColumnName(i), rs.getObject(i));
+				}
+			}
+			
+			return result;
+		}
+		
+		private static class CaseInsensitiveHashMap extends HashMap
+		{
+			/**
+			 * @see Map#containsKey(Object)
+			 */
+			public boolean containsKey(Object key)
+			{
+				return super.containsKey(key.toString().toLowerCase());
+			}
+			
+			/**
+			 * @see Map#get(Object)
+			 */
+			public Object get(Object key)
+			{
+				return super.get(key.toString().toLowerCase());
+			}
+			
+			/**
+			 * @see Map#put(Object, Object)
+			 */
+			public Object put(Object key, Object value)
+			{
+				return super.put(key.toString().toLowerCase(), value);
+			}
+			
+			/**
+			 * @see Map#putAll(Map)
+			 */
+			public void putAll(Map m)
+			{
+				Iterator iter = m.keySet().iterator();
+				while (iter.hasNext())
+				{
+					Object key = iter.next();
+					Object value = m.get(key);
+					this.put(key, value);
+				}
+			}
+			
+			/**
+			 * @see Map#remove(Object)
+			 */
+			public Object remove(Object key)
+			{
+				return super.remove(key.toString().toLowerCase());
+			}
 		}
 	}
 	
