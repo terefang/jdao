@@ -1104,6 +1104,71 @@ public class JDAO
 		return ds.update(conn, qq.toString(), parm.toArray());
 	}
 	
+	public static <T> T insertWithPK(int dbType, Connection conn, QueryRunner ds, String table, Map cols, Class<T> clazz)
+			throws Exception
+	{
+		return insertWithPK(dbType, conn, ds, table, cols, false, clazz);
+	}
+	
+	public static <T> T insertWithPK(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Class<T> clazz)
+			throws Exception
+	{
+		return insertWithPK(dbType, conn, ds, table, cols, onDuplicateKeyUpdate, cols.keySet(), clazz);
+	}
+	
+	public static <T> T insertWithPK(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateFields, Class<T> clazz)
+			throws Exception
+	{
+		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL))
+		{
+			throw new IllegalArgumentException("DB TYPE NOT MYSQL");
+		}
+		Vector parm = new Vector();
+		StringBuilder qq=new StringBuilder();
+		qq.append("INSERT INTO "+table+" ( ");
+		boolean op = true;
+		for(Object kv : cols.entrySet())
+		{
+			parm.add(((Map.Entry)kv).getValue());
+			if(!op)
+			{
+				qq.append(",");
+			}
+			qq.append(((Map.Entry)kv).getKey());
+			op=false;
+		}
+		qq.append(" ) VALUES (");
+		op = true;
+		for(Object v : parm)
+		{
+			if(!op)
+			{
+				qq.append(",");
+			}
+			qq.append("?");
+			op=false;
+		}
+		qq.append(" ) ");
+		
+		if(onDuplicateKeyUpdate)
+		{
+			Map um =new HashMap();
+			for(Object o : updateFields)
+			{
+				um.put(o, cols.get(o));
+			}
+			String setuqq = buildSet(dbType, parm, um);
+			qq.append(" ON DUPLICATE KEY UPDATE ");
+			qq.append(setuqq);
+		}
+		
+		if(conn==null)
+		{
+			return ds.insert(qq.toString(), new ScalarHandler<T>(), parm.toArray());
+		}
+		return ds.insert(conn, qq.toString(), new ScalarHandler<T>(), parm.toArray());
+	}
+	
 	/**
 	 * create a set statement-fragment and parameter-list from a column-map.
 	 *
