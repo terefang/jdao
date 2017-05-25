@@ -1054,7 +1054,7 @@ public class JDAO
 	public static int insert(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateFields)
 			throws Exception
 	{
-		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL))
+		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL) && (dbType != JDAO.DB_TYPE_CRATE))
 		{
 			throw new IllegalArgumentException("DB TYPE NOT MYSQL");
 		}
@@ -1119,7 +1119,7 @@ public class JDAO
 	public static <T> T insertWithPK(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateFields, Class<T> clazz)
 			throws Exception
 	{
-		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL))
+		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL) && (dbType != JDAO.DB_TYPE_CRATE))
 		{
 			throw new IllegalArgumentException("DB TYPE NOT MYSQL");
 		}
@@ -1287,6 +1287,10 @@ public class JDAO
 	{
 		switch(dbType)
 		{
+			case DB_TYPE_CRATE:
+			{
+				return arg1+(invert?" !":" ")+"~ "+arg2;
+			}
 			case DB_TYPE_POSTGRES:
 			{
 				return arg1+(invert?" !":" ")+"~* "+arg2;
@@ -1304,7 +1308,6 @@ public class JDAO
 			case DB_TYPE_DB2:
 			case DB_TYPE_H2:
 			case DB_TYPE_SQLITE:
-			case DB_TYPE_CRATE:
 			case DB_TYPE_ANSI:
 			default:
 			{
