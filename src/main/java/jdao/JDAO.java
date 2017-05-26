@@ -477,7 +477,7 @@ public class JDAO
 	 * @param  args, sql parameters
 	 * @return object of type T or null
 	 */
-
+	
 	public static <T> T
 	queryForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String sql, Object... args)
 			throws Exception
@@ -1168,6 +1168,30 @@ public class JDAO
 		}
 		return ds.insert(conn, qq.toString(), new ScalarHandler<T>(), parm.toArray());
 	}
+
+	
+	public <T> void
+	queryForCallback(ResultRowCallbackHandler<T> rowHandler, String sql, Object... args)
+			throws Exception
+	{
+		JDAO.queryWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, sql, args);
+	}
+	
+	public <T> List<T>
+	queryWithCallback(ResultRowCallbackHandler<T> rowHandler, String sql, Object... args)
+			throws Exception
+	{
+		return JDAO.queryWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, sql, args);
+	}
+	
+	public static <T> List<T>
+	queryWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String sql, Object... args)
+			throws Exception
+	{
+		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
+		return JDAO.queryForT(dbType, rcbh, conn, ds, sql, args);
+	}
+	
 	
 	/**
 	 * create a set statement-fragment and parameter-list from a column-map.
@@ -2170,6 +2194,45 @@ public class JDAO
 				}
 			}
 			return ret;
+		}
+	}
+	
+	public static interface ResultRowCallbackHandler<T>
+	{
+		public T handleRow(Map<String, Object> row) throws SQLException;
+	}
+	
+	public static class ResultCallbackHandler<T> implements ResultSetHandler<List<T>>
+	{
+		ResultRowCallbackHandler<T> rowCallback = null;
+		RowProcessor rowProcessor = new BasicXRowProcessor();
+		
+		public ResultCallbackHandler(ResultRowCallbackHandler<T> rowCallback)
+		{
+			this.rowCallback = rowCallback;
+		}
+		
+		public ResultCallbackHandler(ResultRowCallbackHandler<T> rowCallback, RowProcessor rowProcessor)
+		{
+			this.rowCallback = rowCallback;
+			this.rowProcessor = rowProcessor;
+		}
+		
+		@Override
+		public List<T> handle(ResultSet rs) throws SQLException
+		{
+			ArrayList rows = new ArrayList();
+			
+			while(rs.next())
+			{
+				T row = this.rowCallback.handleRow(rowProcessor.toMap(rs));
+				if(row!=null)
+				{
+					rows.add(row);
+				}
+			}
+			
+			return rows;
 		}
 	}
 	
