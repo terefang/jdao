@@ -1104,6 +1104,75 @@ public class JDAO
 		return ds.update(conn, qq.toString(), parm.toArray());
 	}
 	
+	public void insertList(String table, List<Map> colList) throws Exception
+	{
+		this.insertList(table, colList, null);
+	}
+	
+	public void insertList(String table, List<Map> colList, String pkField) throws Exception
+	{
+		if(pkField==null)
+		{
+			JDAO.insertList(this.dbType, this.conn, this.queryRunner, table, colList, false, null);
+		}
+		else
+		{
+			for(Map row : colList)
+			{
+				Collection updateFields = row.keySet();
+				updateFields.remove(pkField);
+				JDAO.insert(this.dbType, this.conn, this.queryRunner, table, row, true, updateFields);
+			}
+		}
+	}
+	
+	public static void insertList(int dbType, Connection conn, QueryRunner ds, String table, List<Map> colList, boolean onDuplicateKeyUpdate, Collection updateFields) throws Exception
+	{
+		for(Map row : colList)
+		{
+			JDAO.insert(dbType, conn, ds, table, row, onDuplicateKeyUpdate, updateFields);
+		}
+	}
+	
+	public <T> List<T> insertListWithPK(String table, List<Map> colList, Class<T> clazz) throws Exception
+	{
+		return this.insertListWithPK(table, colList, null, clazz);
+	}
+	
+	public <T> List<T> insertListWithPK(String table, List<Map> colList, String pkField, Class<T> clazz) throws Exception
+	{
+		if(pkField==null)
+		{
+			return this.insertListWithPK(table, colList, false, null, clazz);
+		}
+		else
+		{
+			ArrayList<T> res = new ArrayList<T>();
+			for(Map row : colList)
+			{
+				Collection updateFields = row.keySet();
+				updateFields.remove(pkField);
+				res.add(JDAO.insertWithPK(this.dbType, this.conn, this.queryRunner, table, row, true, updateFields, clazz));
+			}
+			return res;
+		}
+	}
+	
+	public <T> List<T> insertListWithPK(String table, List<Map> colList, boolean onDuplicateKeyUpdate, Collection updateFields, Class<T> clazz) throws Exception
+	{
+		return JDAO.insertListWithPK(this.dbType, this.conn, this.queryRunner, table, colList, onDuplicateKeyUpdate, updateFields, clazz);
+	}
+	
+	public static <T> List<T> insertListWithPK(int dbType, Connection conn, QueryRunner ds, String table, List<Map> colList, boolean onDuplicateKeyUpdate, Collection updateFields, Class<T> clazz) throws Exception
+	{
+		ArrayList<T> res = new ArrayList<T>();
+		for(Map row : colList)
+		{
+			res.add(JDAO.insertWithPK(dbType, conn, ds, table, row, onDuplicateKeyUpdate, updateFields, clazz));
+		}
+		return res;
+	}
+	
 	public static <T> T insertWithPK(int dbType, Connection conn, QueryRunner ds, String table, Map cols, Class<T> clazz)
 			throws Exception
 	{
