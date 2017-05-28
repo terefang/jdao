@@ -50,6 +50,26 @@ public class JDAO
 		return ret;
 	}
 	
+	public static Map<String, String> toMapString(String... values)
+	{
+		Map<String, String> ret = new HashMap();
+		for(int i=0; i<values.length; i+=2)
+		{
+			ret.put(values[i], values[i+1]);
+		}
+		return ret;
+	}
+	
+	public static Collection toCollection(Object... values)
+	{
+		ArrayList ret = new ArrayList(values.length);
+		for(int i=0; i<values.length; i++)
+		{
+			ret.add(values[i]);
+		}
+		return ret;
+	}
+	
 	public static final String PROP_DATASOURCE_CONFIG_SUFFIX = ".ds.properties";
 	
 	public static final String DEFAULT_JNDI_PATH = "java:ds";
@@ -1237,7 +1257,20 @@ public class JDAO
 		}
 		return ds.insert(conn, qq.toString(), new ScalarHandler<T>(), parm.toArray());
 	}
+	
+	public void insertKvMap(String table, String kvSF, String kvKF, String kvVF, String scopeId, Map<String,String> kvMap, boolean onDuplicateKeyUpdate) throws Exception
+	{
+		JDAO.insertKvMap(this.dbType, this.conn, this.queryRunner, table,kvSF, kvKF, kvVF, scopeId,kvMap, onDuplicateKeyUpdate);
+	}
 
+	public static void insertKvMap(int dbType, Connection conn, QueryRunner ds, String table, String kvSF, String kvKF, String kvVF, String scopeId, Map<String,String> kvMap, boolean onDuplicateKeyUpdate)
+			throws Exception
+	{
+		for(Map.Entry<String, String> entry : kvMap.entrySet())
+		{
+			JDAO.insert(dbType, conn, ds, table, JDAO.toMap(kvSF, scopeId, kvKF, entry.getKey(), kvVF, entry.getValue()), onDuplicateKeyUpdate, JDAO.toCollection(kvKF, kvVF));
+		}
+	}
 	
 	public <T> void
 	queryForCallback(ResultRowCallbackHandler<T> rowHandler, String sql, Object... args)
@@ -1261,7 +1294,79 @@ public class JDAO
 		return JDAO.queryForT(dbType, rcbh, conn, ds, sql, args);
 	}
 	
+	public <T> void
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	{
+		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
+	}
 	
+	public <T> void
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	{
+		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
+	}
+	
+	public <T> void
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	{
+		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
+	}
+	
+	public <T> void
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm) throws Exception
+	{
+		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
+	}
+	
+	public <T> List<T>
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	{
+		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
+	}
+	
+	public <T> List<T>
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	{
+		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
+	}
+	
+	public <T> List<T>
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	{
+		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
+	}
+	
+	public <T> List<T>
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm) throws Exception
+	{
+		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
+	}
+	
+	public static <T> List<T>
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	{
+		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
+		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, constraintType);
+	}
+	public static <T> List<T>
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	{
+		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
+		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, CONSTRAINT_ALL_OF);
+	}
+	public static <T> List<T>
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	{
+		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
+		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+	}
+	public static <T> List<T>
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm) throws Exception
+	{
+		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
+		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+	}
+
 	/**
 	 * create a set statement-fragment and parameter-list from a column-map.
 	 *
@@ -1971,8 +2076,7 @@ public class JDAO
 	}
 	
 	public  Map<String,String>
-	queryTemplateForKvMap(String table, String c1, String c2, Map<String,String> vm)
-			throws Exception
+	queryTemplateForKvMap(String table, String c1, String c2, Map<String,String> vm) throws Exception
 	{
 		return queryTemplateForKvMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
@@ -1987,6 +2091,18 @@ public class JDAO
 			throws Exception
 	{
 		return JDAO.queryForKvListMap(this.dbType, this.conn, this.queryRunner, sql);
+	}
+	
+	public Map<String,String>
+	queryScopeForKvMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
+	{
+		return this.queryTemplateForKvMap(table, kvKF, kvVF, JDAO.toMapString(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
+	}
+	
+	public Map<String, List<String>>
+	queryScopeForKvListMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
+	{
+		return this.queryTemplateForKvListMap(table, kvKF, kvVF, JDAO.toMapString(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>>
