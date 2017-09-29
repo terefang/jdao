@@ -1481,6 +1481,27 @@ public class JDAO
 		}
 	}
 	
+	public static String existsOpPerDbType(int dbType, String arg1, boolean invert)
+	{
+		switch(dbType)
+		{
+			case DB_TYPE_POSTGRES:
+			case DB_TYPE_ORACLE:
+			case DB_TYPE_MSSQL:
+			case DB_TYPE_ANSI:
+			case DB_TYPE_MYSQL:
+			case DB_TYPE_SYBASE:
+			case DB_TYPE_DB2:
+			case DB_TYPE_H2:
+			case DB_TYPE_SQLITE:
+			case DB_TYPE_CRATE:
+			default:
+			{
+				return (invert?" NOT":" ")+"(("+arg1+" IS NOT NULL) AND ("+arg1+" !='')) ";
+			}
+		}
+	}
+	
 	public static String regexpOpPerDbType(int dbType, String arg1, String arg2, boolean invert)
 	{
 		switch(dbType)
@@ -1654,6 +1675,11 @@ public class JDAO
 			s=s.substring(1);
 			sb.append(" ("+likeOpPerDbType(dbType, k, "?", invert)+")");
 			param.add(s+'%');
+			return;
+		}
+		else if("*".equals(s) || "%".equals(s))
+		{
+			sb.append(" ("+existsOpPerDbType(dbType, k, invert)+")");
 			return;
 		}
 		else if(s.indexOf('*')>=0)
