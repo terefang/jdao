@@ -29,14 +29,12 @@ import org.apache.commons.logging.LogFactory;
 import javax.naming.*;
 
 import javax.sql.DataSource;
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileReader;
+import java.io.*;
 import java.sql.*;
 
 import java.util.*;
 
-public class JDAO
+public class JDAO implements Closeable
 {
 	public static Log LOG = LogFactory.getLog(JDAO.class);
 	
