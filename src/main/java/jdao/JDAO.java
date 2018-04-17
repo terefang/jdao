@@ -40,6 +40,26 @@ public class JDAO
 {
 	public static Log LOG = LogFactory.getLog(JDAO.class);
 	
+	public void checkReadOnly() throws Exception
+	{
+		if(this.isReadOnly())
+		{
+			throw new IllegalAccessException("JDAO is read-only.");
+		}
+	}
+	
+	public boolean isReadOnly()
+	{
+		return readOnly;
+	}
+	
+	public void setReadOnly(boolean readOnly)
+	{
+		this.readOnly = readOnly;
+	}
+	
+	private boolean readOnly = false;
+	
 	public static Map<String, Object> toMap(Object... values)
 	{
 		Map<String, Object> ret = new HashMap();
@@ -447,7 +467,7 @@ public class JDAO
 	{
 		return new JDAO(conn, new QueryRunner(pmt));
 	}
-
+	
 	public static JDAO createDaoFromJndi(String jndiUri, boolean pmt)
 			throws Exception
 	{
@@ -1126,11 +1146,13 @@ public class JDAO
 	
 	public void insertList(String table, List<Map> colList) throws Exception
 	{
+		this.checkReadOnly();
 		this.insertList(table, colList, null);
 	}
 	
 	public void insertList(String table, List<Map> colList, String pkField) throws Exception
 	{
+		this.checkReadOnly();
 		if(pkField==null)
 		{
 			JDAO.insertList(this.dbType, this.conn, this.queryRunner, table, colList, false, null);
@@ -1156,11 +1178,13 @@ public class JDAO
 	
 	public <T> List<T> insertListWithPK(String table, List<Map> colList, Class<T> clazz) throws Exception
 	{
+		this.checkReadOnly();
 		return this.insertListWithPK(table, colList, null, clazz);
 	}
 	
 	public <T> List<T> insertListWithPK(String table, List<Map> colList, String pkField, Class<T> clazz) throws Exception
 	{
+		this.checkReadOnly();
 		if(pkField==null)
 		{
 			return this.insertListWithPK(table, colList, false, null, clazz);
@@ -1180,6 +1204,7 @@ public class JDAO
 	
 	public <T> List<T> insertListWithPK(String table, List<Map> colList, boolean onDuplicateKeyUpdate, Collection updateFields, Class<T> clazz) throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insertListWithPK(this.dbType, this.conn, this.queryRunner, table, colList, onDuplicateKeyUpdate, updateFields, clazz);
 	}
 	
@@ -1262,7 +1287,7 @@ public class JDAO
 	{
 		JDAO.insertKvMap(this.dbType, this.conn, this.queryRunner, table,kvSF, kvKF, kvVF, scopeId,kvMap, onDuplicateKeyUpdate);
 	}
-
+	
 	public static void insertKvMap(int dbType, Connection conn, QueryRunner ds, String table, String kvSF, String kvKF, String kvVF, String scopeId, Map<String,String> kvMap, boolean onDuplicateKeyUpdate)
 			throws Exception
 	{
@@ -1366,7 +1391,7 @@ public class JDAO
 		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
 		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
-
+	
 	/**
 	 * create a set statement-fragment and parameter-list from a column-map.
 	 *
@@ -1453,7 +1478,7 @@ public class JDAO
 		
 		return(sb.toString());
 	}
-
+	
 	public static String likeOpPerDbType(int dbType, String arg1, String arg2, boolean invert)
 	{
 		switch(dbType)
@@ -1918,7 +1943,6 @@ public class JDAO
 	{
 		this();
 		this.queryRunner = queryRunner;
-		
 	}
 	
 	public JDAO(Connection conn, QueryRunner queryRunner)
@@ -2237,12 +2261,14 @@ public class JDAO
 	public  int update(String sql, Object... args)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.update(this.dbType, this.conn, this.queryRunner, sql, args);
 	}
 	
 	public  int update(String sql)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.update(this.dbType, this.conn, this.queryRunner, sql);
 	}
 	
@@ -2261,36 +2287,42 @@ public class JDAO
 	public  int insertSet(String table, Map cols)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, false);
 	}
 	
 	public  int insertSet(String table, Map cols, boolean onDuplicateKeyUpdate)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate);
 	}
 	
 	public  int insertSet(String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateCols)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate, updateCols);
 	}
 	
 	public  int insert(String table, Map cols)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insert(this.dbType, this.conn, this.queryRunner, table, cols);
 	}
 	
 	public  int insert(String table, Map cols, boolean onDuplicateKeyUpdate)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insert(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate);
 	}
 	
 	public  int insert(String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateCols)
 			throws Exception
 	{
+		this.checkReadOnly();
 		return JDAO.insert(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate, updateCols);
 	}
 	
@@ -2341,7 +2373,7 @@ public class JDAO
 		}
 		catch(Exception xe) {}
 	}
-		
+	
 	public void close()
 	{
 		try
