@@ -23,15 +23,18 @@ import org.apache.commons.dbcp.BasicDataSourceFactory;
 import org.apache.commons.dbutils.*;
 import org.apache.commons.dbutils.handlers.*;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.naming.*;
 
 import javax.sql.DataSource;
+import java.beans.PropertyDescriptor;
 import java.io.*;
+import java.lang.annotation.*;
+import java.lang.reflect.Field;
 import java.sql.*;
-
 import java.util.*;
 
 public class JDAO implements Closeable
@@ -338,10 +341,29 @@ public class JDAO implements Closeable
 		return createDataSourceByProperties(file.toString(), dataSource, properties);
 	}
 	
+	public static void adjustPropertiesForEnvParameters(Properties properties)
+	{
+		for(String key : properties.stringPropertyNames())
+		{
+			String property = properties.getProperty(key);
+			int ofs = 0;
+			while((ofs = property.indexOf("$(", ofs)) > 0)
+			{
+				int efs = property.indexOf(')', ofs);
+				String lookupKey = property.substring(ofs+2, efs);
+				String lookupProp = System.getProperty(lookupKey,"$("+lookupKey+")");
+				property = property.substring(0,ofs)+lookupProp+property.substring(efs+1);
+				ofs++;
+				properties.setProperty(key, property);
+			}
+		}
+	}
+	
 	public static DataSource createDataSourceByProperties(String file, DataSource dataSource, Properties properties)
 	{
 		try
 		{
+			adjustPropertiesForEnvParameters(properties);
 			if(dataSource==null)
 			{
 				if(properties.containsKey("jdaoDriverClassName"))
@@ -371,6 +393,7 @@ public class JDAO implements Closeable
 	{
 		try
 		{
+			adjustPropertiesForEnvParameters(properties);
 			DataSource dataSource = null;
 			dataSource = (DataSource)clazz.newInstance();
 			BeanUtils.populate(dataSource, (Map)properties);
@@ -849,65 +872,6 @@ public class JDAO implements Closeable
 		return queryForT(dbType, kvListMapHandler, conn, ds, sql);
 	}
 	
-	public static <T> Map<String,T> queryForStringBeanMap(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		return queryForBeanMap(dbType, conn, ds, sql, String.class, beanClazz, args);
-	}
-	
-	public static <T> Map<String,T> queryForStringBeanMap(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		return queryForBeanMap(dbType, conn, ds, sql, String.class, beanClazz);
-	}
-	
-	public static <K,V> Map<K,V> queryForBeanMap(int dbType, Connection conn, QueryRunner ds, String sql, Class<K> idClazz, Class<V> beanClazz, Object... args)
-			throws Exception
-	{
-		BeanMapHandler<K, V> handler = new BeanMapHandler<K, V>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql, args);
-	}
-	
-	public static <K,V> Map<K,V> queryForBeanMap(int dbType, Connection conn, QueryRunner ds, String sql, Class<K> idClazz, Class<V> beanClazz)
-			throws Exception
-	{
-		BeanMapHandler<K, V> handler = new BeanMapHandler<K, V>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql);
-	}
-	
-	public static <T> List<T> queryForBeanList(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		ResultSetHandler<List<T>> handler = new BeanListHandler<T>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql, args);
-	}
-	
-	public static <T> List<T> queryForBeanList(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		ResultSetHandler<List<T>> handler = new BeanListHandler<T>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql);
-	}
-	
-	public static <T> T queryForBean(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		ResultSetHandler<T> handler = new BeanHandler<T>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql, args);
-	}
-	
-	public static <T> T queryForBean(int dbType, Connection conn, QueryRunner ds, String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		ResultSetHandler<T> handler = new BeanHandler<T>(beanClazz, generousRowProcessor);
-		
-		return queryForT(dbType, handler, conn, ds, sql);
-	}
 	
 	/**
 	 * executes a query and returns exactly one Object
@@ -2175,54 +2139,6 @@ public class JDAO implements Closeable
 		return queryTemplateForKvListMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	
-	public  <T> Map<String,T> queryForStringBeanMap(String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		return this.queryForBeanMap(sql, String.class, beanClazz, args);
-	}
-	
-	public  <T> Map<String,T> queryForStringBeanMap(String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		return this.queryForBeanMap(sql, String.class, beanClazz);
-	}
-	
-	public  <K,V> Map<K,V> queryForBeanMap(String sql, Class<K> idClazz, Class<V> beanClazz, Object... args)
-			throws Exception
-	{
-		return JDAO.queryForBeanMap(this.dbType, this.conn, this.queryRunner, sql, idClazz, beanClazz, args);
-	}
-	
-	public  <K,V> Map<K,V> queryForBeanMap(String sql, Class<K> idClazz, Class<V> beanClazz)
-			throws Exception
-	{
-		return JDAO.queryForBeanMap(this.dbType, this.conn, this.queryRunner, sql, idClazz, beanClazz);
-	}
-	
-	public  <T> List<T> queryForBeanList(String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		return JDAO.queryForBeanList(this.dbType, this.conn, this.queryRunner, sql, beanClazz, args);
-	}
-	
-	public  <T> List<T> queryForBeanList(String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		return JDAO.queryForBeanList(this.dbType, this.conn, this.queryRunner, sql, beanClazz);
-	}
-	
-	public  <T> T queryForBean(String sql, Class<T> beanClazz, Object... args)
-			throws Exception
-	{
-		return JDAO.queryForBean(this.dbType, this.conn, this.queryRunner, sql, beanClazz, args);
-	}
-	
-	public  <T> T queryForBean(String sql, Class<T> beanClazz)
-			throws Exception
-	{
-		return JDAO.queryForBean(this.dbType, this.conn, this.queryRunner, sql, beanClazz);
-	}
-	
 	public  Object queryForScalar(String sql, Object... args)
 			throws Exception
 	{
@@ -2389,6 +2305,16 @@ public class JDAO implements Closeable
 		}
 	}
 	
+	public Connection getConnection()
+	{
+		return this.conn;
+	}
+	
+	public QueryRunner getQueryRunner()
+	{
+		return this.queryRunner;
+	}
+	
 	public static class KvListMapHandler implements ResultSetHandler<Map<String,List<String>>>
 	{
 		BasicRowProcessor basicRowProcessor = new BasicRowProcessor();
@@ -2551,6 +2477,139 @@ public class JDAO implements Closeable
 				return super.remove(key.toString().toLowerCase());
 			}
 		}
+	}
+	
+	public interface IBean
+	{
+	}
+	
+	@Target(value= ElementType.FIELD)
+	@Retention(value= RetentionPolicy.RUNTIME)
+	public @interface IBeanField
+	{
+		String value();
+	}
+	
+	public static class IBeanProcessor<T> extends BeanProcessor
+	{
+		private Class<T> type;
+		
+		public static <T> IBeanProcessor<T> of(Class<T> type)
+		{
+			IBeanProcessor abp = new IBeanProcessor();
+			abp.type = type;
+			return abp;
+		}
+		
+		private IBeanProcessor()
+		{
+		}
+		
+		protected int[] mapColumnsToProperties(ResultSetMetaData rsmd, PropertyDescriptor[] props) throws SQLException
+		{
+			int cols = rsmd.getColumnCount();
+			int[] columnToProperty = new int[ cols+1];
+			
+			Arrays.fill(columnToProperty, -1);
+			
+			List<Field> fieldList = FieldUtils.getFieldsListWithAnnotation(this.type, IBeanField.class);
+			for(int col = 1; col <= cols; ++col)
+			{
+				String columnName = rsmd.getColumnLabel(col);
+				if(null == columnName || 0 == columnName.length())
+				{
+					columnName = rsmd.getColumnName(col);
+				}
+				
+				for(Field f : fieldList)
+				{
+					String fName = f.getAnnotation(IBeanField.class).value();
+					String pName = f.getName();
+					if(fName.equalsIgnoreCase(columnName))
+					{
+						for(int i = 0; i < props.length; ++i)
+						{
+							String propName = props[i].getName();
+							if(pName.equalsIgnoreCase(propName))
+							{
+								columnToProperty[col] = i;
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+			
+			return columnToProperty;
+		}
+	}
+	
+	public <T> Map<String, T> queryForStringBeanMap(String sql, Class<T> beanClazz, Object... args)
+			throws Exception
+	{
+		return queryForBeanMap(sql, String.class, beanClazz, args);
+	}
+	
+	public <T> Map<String, T> queryForStringBeanMap(String sql, Class<T> beanClazz)
+			throws Exception
+	{
+		return queryForBeanMap(sql, String.class, beanClazz);
+	}
+	
+	public <K, V> Map<K, V> queryForBeanMap(String sql, Class<K> idClazz, Class<V> beanClazz, Object... args)
+			throws Exception
+	{
+		BeanMapHandler<K, V> handler = new BeanMapHandler<K, V>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql, args);
+	}
+	
+	public <K, V> Map<K, V> queryForBeanMap(String sql, Class<K> idClazz, Class<V> beanClazz)
+			throws Exception
+	{
+		BeanMapHandler<K, V> handler = new BeanMapHandler<K, V>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql);
+	}
+	
+	public <T> List<T> queryForBeanList(String sql, Class<T> beanClazz, Object... args)
+			throws Exception
+	{
+		ResultSetHandler<List<T>> handler = new BeanListHandler<T>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql, args);
+	}
+	
+	public <T> List<T> queryForBeanList(String sql, Class<T> beanClazz)
+			throws Exception
+	{
+		ResultSetHandler<List<T>> handler = new BeanListHandler<T>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql);
+	}
+	
+	public <T> T queryForBean(String sql, Class<T> beanClazz, Object... args)
+			throws Exception
+	{
+		ResultSetHandler<T> handler = new BeanHandler<T>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql, args);
+	}
+	
+	
+	public <T> T queryForBean(String sql, Class<T> beanClazz)
+			throws Exception
+	{
+		ResultSetHandler<T> handler = new BeanHandler<T>(beanClazz, IBean.class.isAssignableFrom(beanClazz)
+				? new BasicRowProcessor(IBeanProcessor.of(beanClazz)) : this.generousRowProcessor);
+		
+		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql);
 	}
 	
 }
