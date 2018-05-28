@@ -61,9 +61,9 @@ public class JDAO implements Closeable
 	
 	private boolean readOnly = false;
 	
-	public static Map<String, Object> toMap(Object... values)
+	public static Map<String,Object> toMap(Object... values)
 	{
-		Map<String, Object> ret = new HashMap();
+		Map<String,Object> ret = new HashMap();
 		for(int i=0; i<values.length; i+=2)
 		{
 			ret.put(String.valueOf(values[i]), values[i+1]);
@@ -618,7 +618,7 @@ public class JDAO implements Closeable
 	}
 	
 	public static <T> T
-	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType)
+	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		List param = new Vector();
@@ -627,21 +627,21 @@ public class JDAO implements Closeable
 	}
 	
 	public static <T> T
-	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery)
+	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	
 	public static <T> T
-	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm)
+	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	
 	public static <T> T
-	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Map<String,String> vm)
+	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, null, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
@@ -1247,7 +1247,7 @@ public class JDAO implements Closeable
 	
 	public void insertKvMap(String table, String kvSF, String kvKF, String kvVF, String scopeId, Map<String,String> kvMap, boolean onDuplicateKeyUpdate) throws Exception
 	{
-		JDAO.insertKvMap(this.dbType, this.conn, this.queryRunner, table,kvSF, kvKF, kvVF, scopeId,kvMap, onDuplicateKeyUpdate);
+		JDAO.insertKvMap(this.dbType, this.conn, this.queryRunner, table,kvSF, kvKF, kvVF, scopeId, kvMap, onDuplicateKeyUpdate);
 	}
 	
 	public static void insertKvMap(int dbType, Connection conn, QueryRunner ds, String table, String kvSF, String kvKF, String kvVF, String scopeId, Map<String,String> kvMap, boolean onDuplicateKeyUpdate)
@@ -1282,73 +1282,73 @@ public class JDAO implements Closeable
 	}
 	
 	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
 	{
 		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
 	}
 	
 	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
 	{
 		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
 	}
 	
 	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
 	{
 		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
 	}
 	
 	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm) throws Exception
+	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm) throws Exception
 	{
 		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
 	}
 	
 	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
 	{
 		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
 	}
 	
 	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
 	{
 		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
 	}
 	
 	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
 	{
 		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
 	}
 	
 	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,String> vm) throws Exception
+	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm) throws Exception
 	{
 		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
 	}
 	
 	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType, int constraintType) throws Exception
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
 	{
 		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
 		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, constraintType);
 	}
 	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery, int templateType) throws Exception
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
 	{
 		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
 		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, CONSTRAINT_ALL_OF);
 	}
 	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm, String suffixQuery) throws Exception
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
 	{
 		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
 		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,String> vm) throws Exception
+	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm) throws Exception
 	{
 		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
 		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
@@ -1396,7 +1396,7 @@ public class JDAO implements Closeable
 	 * create a where statement-fragment and parameter-list from a column-map and constraint-type based on LIKE.
 	 *
 	 */
-	public static String buildWhereLike(int dbType, int constraintType, List param, Map<String,String> vm)
+	public static String buildWhereLike(int dbType, int constraintType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
@@ -1407,7 +1407,7 @@ public class JDAO implements Closeable
 			sb.append(" ( ");
 			for(String k : vm.keySet())
 			{
-				String v = vm.get(k);
+				String v = vm.get(k).toString();
 				if(v!="" && v!="*" && v!="%")
 				{
 					if(first)
@@ -1525,7 +1525,7 @@ public class JDAO implements Closeable
 	 * create a where statement-fragment and parameter-list from a column-map and constraint-type based on REGEXP.
 	 *
 	 */
-	public static String buildWhereRegexp(int dbType, int constraintType, List param, Map<String,String> vm)
+	public static String buildWhereRegexp(int dbType, int constraintType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		boolean first = true;
@@ -1536,7 +1536,7 @@ public class JDAO implements Closeable
 			sb.append(" ( ");
 			for(String k : vm.keySet())
 			{
-				String v = vm.get(k);
+				String v = vm.get(k).toString();
 				if(v!="" && v!="*" && v!=".*")
 				{
 					if(first)
@@ -1575,7 +1575,7 @@ public class JDAO implements Closeable
 	 * create a where statement-fragment and parameter-list from a column-map, template-type and constraint-type.
 	 *
 	 */
-	public static String buildWhere(int dbType, int templateType, int constraintType, List param, Map<String,String> template)
+	public static String buildWhere(int dbType, int templateType, int constraintType, List param, Map<String,Object> template)
 	{
 		switch(templateType)
 		{
@@ -1645,7 +1645,7 @@ public class JDAO implements Closeable
 		}
 	}
 	
-	static void parseSpec_(int dbType, StringBuilder sb, List param, String k, String s, boolean invert)
+	public static void parseSpec_(int dbType, StringBuilder sb, List param, String k, String s, boolean invert)
 	{
 		if(s.trim().length()==0)
 		{
@@ -1693,32 +1693,32 @@ public class JDAO implements Closeable
 	}
 	
 	
-	public static String buildWhereAuto(int dbType, List param, Map<String,String> vm)
+	public static String buildWhereAuto(int dbType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(" TRUE ");
 		for(String k : vm.keySet())
 		{
-			String v = vm.get(k);
-			if(v!="")
+			Object v = vm.get(k);
+			if((v instanceof String) && v.toString()!="")
 			{
 				sb.append(" AND ");
-				parseSpec(dbType, sb, param, k, v);
+				parseSpec(dbType, sb, param, k, v.toString());
 			}
 		}
 		return(sb.toString());
 	}
 	
-	public static String buildWhereEqual(int dbType, List param, Map<String,String> vm)
+	public static String buildWhereEqual(int dbType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(" TRUE ");
 		for(String k : vm.keySet())
 		{
-			String v = vm.get(k);
-			if(v!="")
+			Object v = vm.get(k);
+			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
 			{
 				sb.append(" AND ("+k+" = ?)");
 				param.add(v);
@@ -1727,15 +1727,15 @@ public class JDAO implements Closeable
 		return(sb.toString());
 	}
 	
-	public static String buildWhereNotEqual(int dbType, List param, Map<String,String> vm)
+	public static String buildWhereNotEqual(int dbType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(" TRUE ");
 		for(String k : vm.keySet())
 		{
-			String v = vm.get(k);
-			if(v!="")
+			Object v = vm.get(k);
+			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
 			{
 				sb.append(" AND ("+k+" != ?)");
 				param.add(v);
@@ -1744,15 +1744,15 @@ public class JDAO implements Closeable
 		return(sb.toString());
 	}
 	
-	public static String buildWhereSubstr(int dbType, List param, Map<String,String> vm)
+	public static String buildWhereSubstr(int dbType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(" TRUE ");
 		for(String k : vm.keySet())
 		{
-			String v = vm.get(k);
-			if(v!="")
+			Object v = vm.get(k);
+			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
 			{
 				sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
 				param.add("%"+v+"%");
@@ -1761,15 +1761,15 @@ public class JDAO implements Closeable
 		return(sb.toString());
 	}
 	
-	public static String buildWherePrefix(int dbType, List param, Map<String,String> vm)
+	public static String buildWherePrefix(int dbType, List param, Map<String,Object> vm)
 	{
 		StringBuilder sb = new StringBuilder();
 		
 		sb.append(" TRUE ");
 		for(String k : vm.keySet())
 		{
-			String v = vm.get(k);
-			if(v!="")
+			Object v = vm.get(k);
+			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
 			{
 				sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
 				param.add(v+"%");
@@ -1941,22 +1941,22 @@ public class JDAO implements Closeable
 		return JDAO.queryForMapList(this.dbType, this.conn, this.queryRunner, sql);
 	}
 	
-	public List<Map<String, Object>>
-	queryTemplateForMapList(String table, Map<String,String> vm, Collection fieldList, String suffixQuery)
+	public List<Map<String,Object>>
+	queryTemplateForMapList(String table, Map<String,Object> vm, Collection fieldList, String suffixQuery)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMapList(this.dbType, this.conn, this.queryRunner,  table, fieldList, vm, suffixQuery);
 	}
 	
-	public List<Map<String, Object>>
-	queryTemplateForMapList(String table, Map<String,String> vm, Collection fieldList)
+	public List<Map<String,Object>>
+	queryTemplateForMapList(String table, Map<String,Object> vm, Collection fieldList)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMapList(this.dbType, this.conn, this.queryRunner,  table, fieldList, vm);
 	}
 	
-	public List<Map<String, Object>>
-	queryTemplateForMapList(String table, Map<String,String> vm)
+	public List<Map<String,Object>>
+	queryTemplateForMapList(String table, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMapList(this.dbType, this.conn, this.queryRunner,  table, vm);
@@ -1975,14 +1975,14 @@ public class JDAO implements Closeable
 	}
 	
 	public List<Object[]>
-	queryTemplateForArrayList(String table, List<String> cols, Map<String,String> vm, String suffixQuery)
+	queryTemplateForArrayList(String table, List<String> cols, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		return JDAO.queryTemplateForArrayList(this.dbType, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
 	}
 	
 	public List<Object[]>
-	queryTemplateForArrayList(String table, List<String> cols, Map<String,String> vm)
+	queryTemplateForArrayList(String table, List<String> cols, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForArrayList(this.dbType, this.conn, this.queryRunner, table, cols, vm);
@@ -2001,7 +2001,7 @@ public class JDAO implements Closeable
 	}
 	
 	public List<Object>
-	queryTemplateForColumnList(String table, String col, Map<String,String> vm, String suffixQuery, int templateType, int constraintType)
+	queryTemplateForColumnList(String table, String col, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		List param = new Vector();
@@ -2009,7 +2009,7 @@ public class JDAO implements Closeable
 	}
 	
 	public List<Object>
-	queryTemplateForColumnList(String table, String col, Map<String,String> vm, String suffixQuery)
+	queryTemplateForColumnList(String table, String col, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		List param = new Vector();
@@ -2017,7 +2017,7 @@ public class JDAO implements Closeable
 	}
 	
 	public List<Object>
-	queryTemplateForColumnList(String table, String col, Map<String,String> vm)
+	queryTemplateForColumnList(String table, String col, Map<String,Object> vm)
 			throws Exception
 	{
 		List param = new Vector();
@@ -2036,25 +2036,25 @@ public class JDAO implements Closeable
 		return JDAO.queryForMap(this.dbType, this.conn, this.queryRunner, sql);
 	}
 	
-	public  Map<String,Object> queryTemplateForMap(String table, Map<String,String> vm, List<String> fieldList, String suffixQuery, int templateType, int constraintType)
+	public  Map<String,Object> queryTemplateForMap(String table, Map<String,Object> vm, List<String> fieldList, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMap(this.dbType, this.conn, this.queryRunner,  table, fieldList, vm, suffixQuery, templateType, constraintType);
 	}
 	
-	public  Map<String,Object> queryTemplateForMap(String table, Map<String,String> vm, List<String> fieldList, String suffixQuery)
+	public  Map<String,Object> queryTemplateForMap(String table, Map<String,Object> vm, List<String> fieldList, String suffixQuery)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMap(this.dbType, this.conn, this.queryRunner,  table, fieldList, vm, suffixQuery);
 	}
 	
-	public  Map<String,Object> queryTemplateForMap(String table, Map<String,String> vm, List<String> fieldList)
+	public  Map<String,Object> queryTemplateForMap(String table, Map<String,Object> vm, List<String> fieldList)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMap(this.dbType, this.conn, this.queryRunner,  table, fieldList, vm);
 	}
 	
-	public  Map<String,Object> queryTemplateForMap(String table, Map<String,String> vm)
+	public  Map<String,Object> queryTemplateForMap(String table, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForMap(this.dbType, this.conn, this.queryRunner,  table, vm);
@@ -2073,7 +2073,7 @@ public class JDAO implements Closeable
 	}
 	
 	public  Map<String,String>
-	queryTemplateForKvMap(String table, String c1, String c2, Map<String,String> vm, String suffixQuery, int templateType, int constraintType)
+	queryTemplateForKvMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		List param = new Vector();
@@ -2081,14 +2081,14 @@ public class JDAO implements Closeable
 	}
 	
 	public  Map<String,String>
-	queryTemplateForKvMap(String table, String c1, String c2, Map<String,String> vm, String suffixQuery)
+	queryTemplateForKvMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		return queryTemplateForKvMap(table, c1, c2, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String,String>
-	queryTemplateForKvMap(String table, String c1, String c2, Map<String,String> vm) throws Exception
+	queryTemplateForKvMap(String table, String c1, String c2, Map<String,Object> vm) throws Exception
 	{
 		return queryTemplateForKvMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
@@ -2108,17 +2108,17 @@ public class JDAO implements Closeable
 	public Map<String,String>
 	queryScopeForKvMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
 	{
-		return this.queryTemplateForKvMap(table, kvKF, kvVF, JDAO.toMapString(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
+		return this.queryTemplateForKvMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
 	}
 	
 	public Map<String, List<String>>
 	queryScopeForKvListMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
 	{
-		return this.queryTemplateForKvListMap(table, kvKF, kvVF, JDAO.toMapString(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
+		return this.queryTemplateForKvListMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>>
-	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,String> vm, String suffixQuery, int templateType, int constraintType)
+	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		List param = new Vector();
@@ -2126,14 +2126,14 @@ public class JDAO implements Closeable
 	}
 	
 	public  Map<String, List<String>>
-	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,String> vm, String suffixQuery)
+	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		return queryTemplateForKvListMap(table, c1, c2, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>>
-	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,String> vm)
+	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,Object> vm)
 			throws Exception
 	{
 		return queryTemplateForKvListMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
@@ -2152,21 +2152,21 @@ public class JDAO implements Closeable
 	}
 	
 	public  Object
-	queryTemplateForScalar(String table, String col, Map<String,String> vm, String suffixQuery, int templateType, int constraintType)
+	queryTemplateForScalar(String table, String col, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType)
 			throws Exception
 	{
 		return JDAO.queryTemplateForScalar(this.dbType, this.conn, this.queryRunner,  table, col, vm, suffixQuery, templateType, constraintType);
 	}
 	
 	public  Object
-	queryTemplateForScalar(String table, String col, Map<String,String> vm, String suffixQuery)
+	queryTemplateForScalar(String table, String col, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
 		return JDAO.queryTemplateForScalar(this.dbType, this.conn, this.queryRunner,  table, col, vm, suffixQuery);
 	}
 	
 	public  Object
-	queryTemplateForScalar(String table, String col, Map<String,String> vm)
+	queryTemplateForScalar(String table, String col, Map<String,Object> vm)
 			throws Exception
 	{
 		return JDAO.queryTemplateForScalar(this.dbType, this.conn, this.queryRunner,  table, col, vm);
@@ -2366,7 +2366,7 @@ public class JDAO implements Closeable
 	
 	public static interface ResultRowCallbackHandler<T>
 	{
-		public T handleRow(Map<String, Object> row) throws SQLException;
+		public T handleRow(Map<String,Object> row) throws SQLException;
 	}
 	
 	public static class ResultCallbackHandler<T> implements ResultSetHandler<List<T>>
@@ -2409,7 +2409,7 @@ public class JDAO implements Closeable
 		public BasicXRowProcessor() { super(); }
 		
 		@Override
-		public Map<String, Object> toMap(ResultSet rs) throws SQLException
+		public Map<String,Object> toMap(ResultSet rs) throws SQLException
 		{
 			Map result = new CaseInsensitiveHashMap();
 			ResultSetMetaData rsmd = rs.getMetaData();
@@ -2488,6 +2488,12 @@ public class JDAO implements Closeable
 	public @interface IBeanField
 	{
 		String value();
+	}
+	
+	@Target(value= ElementType.FIELD)
+	@Retention(value= RetentionPolicy.RUNTIME)
+	public @interface IBeanID
+	{
 	}
 	
 	public static class IBeanProcessor<T> extends BeanProcessor
@@ -2612,4 +2618,118 @@ public class JDAO implements Closeable
 		return this.queryForT(this.getDbType(), handler, this.getConnection(), this.getQueryRunner(), sql);
 	}
 	
+	public static <T>String extractIdNameFromBean(Class<T> _beanClazz)
+	{
+		List<Field> fields = FieldUtils.getFieldsListWithAnnotation(_beanClazz, IBeanID.class);
+		if(fields.size()!=1)
+		{
+			throw new IllegalArgumentException("improper IBeanID annotation");
+		}
+		return fields.iterator().next().getAnnotation(IBeanField.class).value();
+	}
+
+	public static <T>Map<String,Object> extractIdKvFromBean(Object _bean, Class<T> _beanClazz)
+	{
+		Map<String,Object> _ret = new HashMap();
+		List<Field> fields = FieldUtils.getFieldsListWithAnnotation(_beanClazz, IBeanID.class);
+		if(fields.size()>0)
+		{
+			throw new IllegalArgumentException("improper IBeanID annotation");
+		}
+		try
+		{
+			Iterator<Field> it = fields.iterator();
+			while(it.hasNext())
+			{
+				Field field = it.next();
+				String _key = field.getAnnotation(IBeanField.class).value();
+				Object _val = FieldUtils.readField(field, _bean, true);
+				_ret.put(_key, _val);
+			}
+			return _ret;
+		}
+		catch(IllegalAccessException e)
+		{
+			// IGNORE
+		}
+		return null;
+	}
+
+	public static <T>Map<String,Object> extractColsFromBean(Object _bean, Class<T> _beanClazz, boolean _inclIdField)
+	{
+		Map<String,Object> _ret = new HashMap();
+		List<Field> fields = FieldUtils.getFieldsListWithAnnotation(_beanClazz, IBeanField.class);
+		for(Field field : fields)
+		{
+			try
+			{
+				if(_inclIdField || (!field.isAnnotationPresent(IBeanID.class)))
+				{
+					String _key = field.getAnnotation(IBeanField.class).value();
+					Object _val = FieldUtils.readField(field, _bean, true);
+					_ret.put(_key, _val);
+				}
+			}
+			catch(IllegalAccessException e)
+			{
+				// IGNORE
+			}
+		}
+		return _ret;
+	}
+	
+	public static <T> List<Map<String,Object>> extractColsFromBeanList(List<Object> _beans, Class<T> _beanClazz, boolean _inclIdField)
+	{
+		List<Map<String,Object>> _ret = new Vector();
+		for(Object b : _beans)
+		{
+			_ret.add(extractColsFromBean((T)b, _beanClazz, _inclIdField));
+		}
+		return _ret;
+	}
+	
+	public <T> int insertBean(String _table, IBean bean, Class<T> beanClazz)
+			throws Exception
+	{
+		Map<String,Object> _col = JDAO.extractColsFromBean((T)bean, beanClazz, true);
+		return this.insert(_table, _col);
+	}
+	
+	public <T> int insertBeanBySQL(String _query, IBean bean, Class<T> beanClazz)
+			throws Exception
+	{
+		Map<String,Object> _col = JDAO.extractColsFromBean((T)bean, beanClazz, true);
+		return JDAO.execute(this.dbType, this.conn, this.queryRunner, _query, _col);
+	}
+	
+	public <T>int updateBean(String table, Object _bean, Class<T> _beanClazz)
+			throws Exception
+	{
+		Map<String,Object> keyCol = extractIdKvFromBean(_bean, _beanClazz);
+		Map cols = extractColsFromBean(_bean, _beanClazz, false);
+		
+		Vector vv = new Vector();
+		String setqq = buildSet(this.dbType, vv, cols);
+		String wqq = buildWhereEqual(this.dbType, vv, keyCol);
+
+		StringBuilder qq=new StringBuilder();
+		
+		qq.append("UPDATE "+table+" SET ");
+		qq.append(setqq);
+		qq.append(" WHERE ");
+		qq.append(wqq);
+		
+		return this.update(qq.toString(), vv.toArray());
+	}
+
+	public <T>int updateBeans(String table, List<Object> _beans, Class<T> _beanClazz)
+			throws Exception
+	{
+		int _ret = 0;
+		for(Object _bean : _beans)
+		{
+			_ret += updateBean(table, _bean, _beanClazz);
+		}
+		return _ret;
+	}
 }
