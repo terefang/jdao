@@ -259,8 +259,8 @@ public class JBAO
         Map cols = extractColsFromBean(_bean, _beanClazz, false);
 
         Vector vv = new Vector();
-        String setqq = _dao.buildSet(this._dao.getDbType(), vv, cols);
-        String wqq = _dao.buildWhereEqual(this._dao.getDbType(), vv, keyCol);
+        String setqq = JdaoUtils.buildSet(this._dao.getDbType(), vv, cols);
+        String wqq = JdaoUtils.buildWhereEqual(this._dao.getDbType(), vv, keyCol);
 
         StringBuilder qq=new StringBuilder();
 

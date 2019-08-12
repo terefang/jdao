@@ -140,7 +140,7 @@ public class JDAO implements Closeable
 		if(args.length == 1 && args[0] instanceof Map)
 		{
 			List nArgs = new Vector();
-			sql = preparseParameters(dbType, sql, nArgs, (Map) args[0]);
+			sql = JdaoUtils.preparseParameters(dbType, sql, nArgs, (Map) args[0]);
 			if(conn==null)
 			{
 				return ds.query(sql, rsHandler, nArgs.toArray());
@@ -205,28 +205,28 @@ public class JDAO implements Closeable
 	{
 		List param = new Vector();
 		String colString = ((cols == null) ? "*" : JDAO.join(cols, ','));
-		return JDAO.queryForT(dbType, rsHandler, conn, ds,  "SELECT "+colString+" FROM "+table+" WHERE "+JDAO.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
+		return JDAO.queryForT(dbType, rsHandler, conn, ds,  "SELECT "+colString+" FROM "+table+" WHERE "+JdaoUtils.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
 	}
 	
 	public static <T> T
 	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
-		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, suffixQuery, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public static <T> T
 	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm)
 			throws Exception
 	{
-		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, cols, vm, null, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public static <T> T
 	queryTemplateForT(int dbType, ResultSetHandler<T> rsHandler, Connection conn, QueryRunner ds, String table, Map<String,Object> vm)
 			throws Exception
 	{
-		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, null, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return JDAO.queryTemplateForT(dbType, rsHandler, conn, ds, table, null, vm, null, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	/**
@@ -276,7 +276,7 @@ public class JDAO implements Closeable
 	queryTemplateForMapList(int dbType, Connection conn, QueryRunner ds, String table, Collection cols, Map vm, String suffixQuery)
 			throws Exception
 	{
-		return queryTemplateForT(dbType, mapListHandler, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForT(dbType, mapListHandler, conn, ds, table, cols, vm, suffixQuery, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public static List<Map<String,Object>>
@@ -324,7 +324,7 @@ public class JDAO implements Closeable
 	queryTemplateForArrayList(int dbType, Connection conn, QueryRunner ds, String table, Collection cols, Map vm, String suffixQuery)
 			throws Exception
 	{
-		return queryTemplateForT(dbType, arrayListHandler, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForT(dbType, arrayListHandler, conn, ds, table, cols, vm, suffixQuery, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public static List<Object[]>
@@ -522,7 +522,7 @@ public class JDAO implements Closeable
 		if(args.length >0 && args[0] instanceof Map)
 		{
 			List nArgs = new Vector();
-			sql = preparseParameters(dbType, sql, nArgs, (Map) args[0]);
+			sql = JdaoUtils.preparseParameters(dbType, sql, nArgs, (Map) args[0]);
 			if(conn==null)
 			{
 				return ds.update(sql, nArgs.toArray());
@@ -578,48 +578,6 @@ public class JDAO implements Closeable
 	}
 	
 	/**
-	 * executes an insert (mysql-insert-set) with optional on-duplicate-key-update and returns the number of rows effected.
-	 *
-	 * @return nrows
-	 */
-	public static int insertSet(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate)
-			throws Exception
-	{
-		return insertSet(dbType, conn, ds, table, cols, onDuplicateKeyUpdate, cols.keySet());
-	}
-	
-	public static int insertSet(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateFields)
-			throws Exception
-	{
-		if(dbType != JDAO.DB_TYPE_MYSQL)
-		{
-			throw new IllegalArgumentException("DB TYPE NOT MYSQL");
-		}
-		Vector vv = new Vector();
-		String setqq = buildSet(dbType, vv, cols);
-		StringBuilder qq=new StringBuilder();
-		qq.append("INSERT INTO "+table+" SET ");
-		qq.append(setqq);
-		if(onDuplicateKeyUpdate)
-		{
-			Map um =new HashMap();
-			for(Object o : updateFields)
-			{
-				um.put(o, cols.get(o));
-			}
-			String setuqq = buildSet(dbType, vv, um);
-			qq.append(" ON DUPLICATE KEY UPDATE ");
-			qq.append(setuqq);
-		}
-		
-		if(conn==null)
-		{
-			return ds.update(qq.toString(), vv.toArray());
-		}
-		return ds.update(conn, qq.toString(), vv.toArray());
-	}
-	
-	/**
 	 * executes an insert and returns the number of rows effected.
 	 *
 	 */
@@ -638,13 +596,11 @@ public class JDAO implements Closeable
 	public static int insert(int dbType, Connection conn, QueryRunner ds, String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateFields)
 			throws Exception
 	{
-		if(onDuplicateKeyUpdate && (dbType != JDAO.DB_TYPE_MYSQL) && (dbType != JDAO.DB_TYPE_CRATE))
-		{
-			throw new IllegalArgumentException("DB TYPE NOT MYSQL");
-		}
 		Vector parm = new Vector();
+
 		StringBuilder qq=new StringBuilder();
-		qq.append("INSERT INTO "+table+" ( ");
+		qq.append("INSERT INTO "+table+" SET ");
+
 		boolean op = true;
 		for(Object kv : cols.entrySet())
 		{
@@ -657,6 +613,7 @@ public class JDAO implements Closeable
 			op=false;
 		}
 		qq.append(" ) VALUES (");
+
 		op = true;
 		for(Object v : parm)
 		{
@@ -668,19 +625,54 @@ public class JDAO implements Closeable
 			op=false;
 		}
 		qq.append(" ) ");
-		
+
 		if(onDuplicateKeyUpdate)
 		{
-			Map um =new HashMap();
-			for(Object o : updateFields)
+			switch(dbType)
 			{
-				um.put(o, cols.get(o));
+				case JDAO.DB_TYPE_POSTGRES:
+				case JDAO.DB_TYPE_SQLITE:
+				{
+					qq.append(" ON CONFLICT ( ");
+					boolean ff = true;
+					for(Object k : cols.keySet())
+					{
+						if(!updateFields.contains(k))
+						{
+							if(!ff) qq.append(",");
+							qq.append(k.toString());
+							ff=false;
+						}
+					}
+					qq.append(" ) ");
+					Map um =new HashMap();
+					for(Object o : updateFields)
+					{
+						um.put(o, cols.get(o));
+					}
+					String setuqq = JdaoUtils.buildSet(dbType, parm, um);
+					qq.append(" DO UPDATE SET ");
+					qq.append(setuqq);
+					break;
+				}
+				case JDAO.DB_TYPE_MYSQL:
+				case JDAO.DB_TYPE_CRATE:
+				{
+					Map um =new HashMap();
+					for(Object o : updateFields)
+					{
+						um.put(o, cols.get(o));
+					}
+					String setuqq = JdaoUtils.buildSet(dbType, parm, um);
+					qq.append(" ON DUPLICATE KEY UPDATE ");
+					qq.append(setuqq);
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("DB TYPE NOT UPSERT-ABLE");
 			}
-			String setuqq = buildSet(dbType, parm, um);
-			qq.append(" ON DUPLICATE KEY UPDATE ");
-			qq.append(setuqq);
 		}
-		
+
 		if(conn==null)
 		{
 			return ds.update(qq.toString(), parm.toArray());
@@ -815,7 +807,7 @@ public class JDAO implements Closeable
 			{
 				um.put(o, cols.get(o));
 			}
-			String setuqq = buildSet(dbType, parm, um);
+			String setuqq = JdaoUtils.buildSet(dbType, parm, um);
 			qq.append(" ON DUPLICATE KEY UPDATE ");
 			qq.append(setuqq);
 		}
@@ -841,581 +833,7 @@ public class JDAO implements Closeable
 		}
 	}
 	
-	public <T> void
-	queryForCallback(ResultRowCallbackHandler<T> rowHandler, String sql, Object... args)
-			throws Exception
-	{
-		JDAO.queryWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, sql, args);
-	}
-	
-	public <T> List<T>
-	queryWithCallback(ResultRowCallbackHandler<T> rowHandler, String sql, Object... args)
-			throws Exception
-	{
-		return JDAO.queryWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, sql, args);
-	}
-	
-	public static <T> List<T>
-	queryWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String sql, Object... args)
-			throws Exception
-	{
-		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
-		return JDAO.queryForT(dbType, rcbh, conn, ds, sql, args);
-	}
-	
-	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
-	{
-		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
-	}
-	
-	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
-	{
-		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
-	}
-	
-	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
-	{
-		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
-	}
-	
-	public <T> void
-	queryTemplateForCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm) throws Exception
-	{
-		JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
-	}
-	
-	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
-	{
-		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType, constraintType);
-	}
-	
-	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
-	{
-		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery, templateType);
-	}
-	
-	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
-	{
-		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm, suffixQuery);
-	}
-	
-	public <T> List<T>
-	queryTemplateWithCallback(ResultRowCallbackHandler<T> rowHandler, String table, Collection cols, Map<String,Object> vm) throws Exception
-	{
-		return JDAO.queryTemplateWithCallbackT(this.dbType, rowHandler, this.conn, this.queryRunner, table, cols, vm);
-	}
-	
-	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType, int constraintType) throws Exception
-	{
-		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
-		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, constraintType);
-	}
-	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery, int templateType) throws Exception
-	{
-		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
-		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, templateType, CONSTRAINT_ALL_OF);
-	}
-	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm, String suffixQuery) throws Exception
-	{
-		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
-		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
-	}
-	public static <T> List<T>
-	queryTemplateWithCallbackT(int dbType, ResultRowCallbackHandler<T> rowHandler, Connection conn, QueryRunner ds, String table, Collection cols, Map<String,Object> vm) throws Exception
-	{
-		ResultCallbackHandler<T> rcbh = new ResultCallbackHandler<T>(rowHandler);
-		return JDAO.queryTemplateForT(dbType, rcbh, conn, ds, table, cols, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
-	}
-	
-	/**
-	 * create a set statement-fragment and parameter-list from a column-map.
-	 *
-	 */
-	public static String buildSet(int dbType, List parm, Map vm)
-	{
-		StringBuilder qq=new StringBuilder();
-		boolean op = true;
-		for(Object kv : vm.entrySet())
-		{
-			String k = ((Map.Entry)kv).getKey().toString();
-			Object v = ((Map.Entry)kv).getValue();
-			if(op == true)
-			{
-				qq.append(k+"=?");
-				op = false;
-			}
-			else
-			{
-				qq.append(", "+k+"=?");
-			}
-			parm.add(v);
-		}
-		return(qq.toString());
-	}
-	
-	
-	public static final int TEMPLATE_TYPE_AUTO = 0;
-	public static final int TEMPLATE_TYPE_EQUAL = 1;
-	public static final int TEMPLATE_TYPE_NOT_EQUAL = 2;
-	public static final int TEMPLATE_TYPE_SUBSTRING = 3;
-	public static final int TEMPLATE_TYPE_STARTSWITH = 4;
-	public static final int TEMPLATE_TYPE_LIKE = 5;
-	public static final int TEMPLATE_TYPE_REGEX = 6;
-	
-	public static final int CONSTRAINT_ANY_OF = 0;
-	public static final int CONSTRAINT_ALL_OF = 1;
-	
-	/**
-	 * create a where statement-fragment and parameter-list from a column-map and constraint-type based on LIKE.
-	 *
-	 */
-	public static String buildWhereLike(int dbType, int constraintType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		int pNum = param.size();
-		
-		if(vm.keySet().size() > 0)
-		{
-			sb.append(" ( ");
-			for(String k : vm.keySet())
-			{
-				String v = vm.get(k).toString();
-				if(v!="" && v!="*" && v!="%")
-				{
-					if(first)
-					{
-						sb.append(" ("+likeOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else if(constraintType==CONSTRAINT_ALL_OF)
-					{
-						sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else if(constraintType==CONSTRAINT_ANY_OF)
-					{
-						sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else
-					{
-						sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
-					}
-					param.add(v);
-					first=false;
-				}
-			}
-			sb.append(" ) ");
-		}
-		
-		if(pNum == param.size())
-		{
-			return " TRUE ";
-		}
-		
-		return(sb.toString());
-	}
-	
-	public static String likeOpPerDbType(int dbType, String arg1, String arg2, boolean invert)
-	{
-		switch(dbType)
-		{
-			case DB_TYPE_POSTGRES:
-			{
-				return arg1+(invert?" NOT":"")+" ILIKE "+arg2;
-			}
-			case DB_TYPE_ORACLE:
-			case DB_TYPE_MSSQL:
-			{
-				return "LOWER("+arg1+")"+(invert?" NOT":"")+" LIKE "+arg2;
-			}
-			case DB_TYPE_ANSI:
-			case DB_TYPE_MYSQL:
-			case DB_TYPE_SYBASE:
-			case DB_TYPE_DB2:
-			case DB_TYPE_H2:
-			case DB_TYPE_SQLITE:
-			case DB_TYPE_CRATE:
-			default:
-			{
-				return arg1+(invert?" NOT":"")+" LIKE "+arg2;
-			}
-		}
-	}
-	
-	public static String existsOpPerDbType(int dbType, String arg1, boolean invert)
-	{
-		switch(dbType)
-		{
-			case DB_TYPE_POSTGRES:
-			case DB_TYPE_ORACLE:
-			case DB_TYPE_MSSQL:
-			case DB_TYPE_ANSI:
-			case DB_TYPE_MYSQL:
-			case DB_TYPE_SYBASE:
-			case DB_TYPE_DB2:
-			case DB_TYPE_H2:
-			case DB_TYPE_SQLITE:
-			case DB_TYPE_CRATE:
-			default:
-			{
-				return (invert?" NOT":" ")+"(("+arg1+" IS NOT NULL) AND ("+arg1+" !='')) ";
-			}
-		}
-	}
-	
-	public static String regexpOpPerDbType(int dbType, String arg1, String arg2, boolean invert)
-	{
-		switch(dbType)
-		{
-			case DB_TYPE_CRATE:
-			{
-				return arg1+(invert?" !":" ")+"~ "+arg2;
-			}
-			case DB_TYPE_POSTGRES:
-			{
-				return arg1+(invert?" !":" ")+"~* "+arg2;
-			}
-			case DB_TYPE_ORACLE:
-			{
-				return (invert?"NOT ":"")+"REGEXP_LIKE("+arg1+", "+arg2+", 'i')";
-			}
-			case DB_TYPE_MYSQL:
-			{
-				return arg1+(invert?" NOT":"")+" RLIKE "+arg2;
-			}
-			case DB_TYPE_MSSQL:
-			case DB_TYPE_SYBASE:
-			case DB_TYPE_DB2:
-			case DB_TYPE_H2:
-			case DB_TYPE_SQLITE:
-			case DB_TYPE_ANSI:
-			default:
-			{
-				return arg1+(invert?" NOT":"")+" REGEXP "+arg2;
-			}
-		}
-	}
-	/**
-	 * create a where statement-fragment and parameter-list from a column-map and constraint-type based on REGEXP.
-	 *
-	 */
-	public static String buildWhereRegexp(int dbType, int constraintType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		int pNum = param.size();
-		
-		if(vm.keySet().size() > 0)
-		{
-			sb.append(" ( ");
-			for(String k : vm.keySet())
-			{
-				String v = vm.get(k).toString();
-				if(v!="" && v!="*" && v!=".*")
-				{
-					if(first)
-					{
-						sb.append(" ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else if(constraintType==CONSTRAINT_ALL_OF)
-					{
-						sb.append(" AND ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else if(constraintType==CONSTRAINT_ANY_OF)
-					{
-						sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-					}
-					else
-					{
-						sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-					}
-					param.add(v);
-					first=false;
-				}
-			}
-			sb.append(" ) ");
-		}
-		
-		if(pNum == param.size())
-		{
-			return " TRUE ";
-		}
-		
-		return(sb.toString());
-	}
-	
-	
-	/**
-	 * create a where statement-fragment and parameter-list from a column-map, template-type and constraint-type.
-	 *
-	 */
-	public static String buildWhere(int dbType, int templateType, int constraintType, List param, Map<String,Object> template)
-	{
-		switch(templateType)
-		{
-			case TEMPLATE_TYPE_AUTO:
-				return buildWhereAuto(dbType, param, template);
-			case TEMPLATE_TYPE_EQUAL:
-				return buildWhereEqual(dbType, param, template);
-			case TEMPLATE_TYPE_NOT_EQUAL:
-				return buildWhereNotEqual(dbType, param, template);
-			case TEMPLATE_TYPE_LIKE:
-				return buildWhereLike(dbType, constraintType, param, template);
-			case TEMPLATE_TYPE_REGEX:
-				return buildWhereRegexp(dbType, constraintType, param, template);
-			case TEMPLATE_TYPE_STARTSWITH:
-				return buildWherePrefix(dbType, param, template);
-			case TEMPLATE_TYPE_SUBSTRING:
-				return buildWhereSubstr(dbType, param, template);
-			default:
-				return buildWhereLike(dbType, constraintType, param, template);
-		}
-	}
-	
-	
-	public static void parseSpec(int dbType, StringBuilder sb, List param, String k, String s)
-	{
-		if(s==null || s.trim().length()==0)
-		{
-			sb.append(" TRUE ");
-			return;
-		}
-		boolean invert = false;
-		
-		if(s.charAt(0)=='!')
-		{
-			invert = true;
-			s = s.substring(1);
-		}
-		
-		if(s.charAt(0)=='+' || s.charAt(0)=='-')
-		{
-			String[] list = s.split("[,;]");
-			
-			sb.append(" ("+(invert ? " TRUE":" FALSE"));
-			
-			for(String item : list)
-			{
-				sb.append(invert ? " AND": " OR");
-				if(s.charAt(0)=='+')
-				{
-					parseSpec_(dbType, sb, param, k, item.substring(1), invert);
-				}
-				else if(s.charAt(0)=='-')
-				{
-					parseSpec_(dbType, sb, param, k, item.substring(1), !invert);
-				}
-				else
-				{
-					parseSpec_(dbType, sb, param, k, item, invert);
-				}
-			}
-			
-			sb.append(")");
-		}
-		else
-		{
-			parseSpec_(dbType, sb, param, k, s, invert);
-		}
-	}
-	
-	public static void parseSpec_(int dbType, StringBuilder sb, List param, String k, String s, boolean invert)
-	{
-		if(s.trim().length()==0)
-		{
-			return;
-		}
-		
-		if(s.charAt(0)=='~')
-		{
-			s=s.substring(1);
-			sb.append(" ("+regexpOpPerDbType(dbType, k, "?", invert)+")");
-		}
-		else if(s.charAt(0)=='^')
-		{
-			s=s.substring(1);
-			sb.append(" ("+likeOpPerDbType(dbType, k, "?", invert)+")");
-			param.add(s+'%');
-			return;
-		}
-		else if("*".equals(s) || "%".equals(s))
-		{
-			sb.append(" ("+existsOpPerDbType(dbType, k, invert)+")");
-			return;
-		}
-		else if(s.indexOf('*')>=0)
-		{
-			s=s.replace('*', '%');
-			sb.append(" ("+likeOpPerDbType(dbType, k, "?", invert)+")");
-		}
-		else if(s.indexOf('%')>=0)
-		{
-			sb.append(" ("+likeOpPerDbType(dbType, k, "?", invert)+")");
-		}
-		else
-		{
-			if(invert)
-			{
-				sb.append(" ("+k+"!=?)");
-			}
-			else
-			{
-				sb.append(" ("+k+"=?)");
-			}
-		}
-		param.add(s);
-	}
-	
-	
-	public static String buildWhereAuto(int dbType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(" TRUE ");
-		for(String k : vm.keySet())
-		{
-			Object v = vm.get(k);
-			if((v instanceof String) && v.toString()!="")
-			{
-				sb.append(" AND ");
-				parseSpec(dbType, sb, param, k, v.toString());
-			}
-		}
-		return(sb.toString());
-	}
-	
-	public static String buildWhereEqual(int dbType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(" TRUE ");
-		for(String k : vm.keySet())
-		{
-			Object v = vm.get(k);
-			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
-			{
-				sb.append(" AND ("+k+" = ?)");
-				param.add(v);
-			}
-		}
-		return(sb.toString());
-	}
-	
-	public static String buildWhereNotEqual(int dbType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(" TRUE ");
-		for(String k : vm.keySet())
-		{
-			Object v = vm.get(k);
-			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
-			{
-				sb.append(" AND ("+k+" != ?)");
-				param.add(v);
-			}
-		}
-		return(sb.toString());
-	}
-	
-	public static String buildWhereSubstr(int dbType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(" TRUE ");
-		for(String k : vm.keySet())
-		{
-			Object v = vm.get(k);
-			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
-			{
-				sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
-				param.add("%"+v+"%");
-			}
-		}
-		return(sb.toString());
-	}
-	
-	public static String buildWherePrefix(int dbType, List param, Map<String,Object> vm)
-	{
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append(" TRUE ");
-		for(String k : vm.keySet())
-		{
-			Object v = vm.get(k);
-			if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
-			{
-				sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
-				param.add(v+"%");
-			}
-		}
-		return(sb.toString());
-	}
-	
-	public static String preparseParameters(int dbType, String format, List param, Map vars)
-	{
-		String prefix = "?{";
-		String suffix = "}";
-		StringBuilder sb = new StringBuilder();
-		
-		int offset = 0;
-		int found = -1;
-		while((found = format.indexOf(prefix, offset)) >= offset)
-		{
-			sb.append(format.substring(offset, found));
-			
-			if(suffix.length()==0)
-			{
-				offset = found+prefix.length()+1;
-			}
-			else
-			{
-				offset = format.indexOf(suffix, found+prefix.length());
-			}
-			
-			if(offset > found)
-			{
-				String tag = format.substring(found+prefix.length(), offset);
-				offset += suffix.length();
-				
-				sb.append("?");
-				if(vars.containsKey(tag))
-				{
-					param.add(vars.get(tag));
-				}
-				else
-				if(vars.containsKey(tag.toLowerCase()))
-				{
-					param.add(vars.get(tag.toLowerCase()));
-				}
-				else
-				if(vars.containsKey(tag.toUpperCase()))
-				{
-					param.add(vars.get(tag.toUpperCase()));
-				}
-				else
-				{
-					param.add("{"+tag.toUpperCase()+"}");
-				}
-			}
-			else
-			{
-				sb.append(prefix);
-				offset = found+prefix.length();
-			}
-		}
-		sb.append(format.substring(offset));
-		
-		return sb.toString();
-	}
+
 	
 	
 	public static List<String> queryFieldList(int dbType, Connection conn, QueryRunner ds, String schemaName, String tableName) throws Exception
@@ -1442,18 +860,7 @@ public class JDAO implements Closeable
 		}
 	}
 	
-	public static Map<String,Object> filterFields(Map<String,Object> row, List<String> fieldList) throws Exception
-	{
-		LinkedHashMap<String,Object> returnRow = new LinkedHashMap();
-		for(String key : fieldList)
-		{
-			if(row.containsKey(key))
-			{
-				returnRow.put(key, row.get(key));
-			}
-		}
-		return returnRow;
-	}
+
 	
 	QueryRunner queryRunner = null;
 	Connection conn = null;
@@ -1659,20 +1066,20 @@ public class JDAO implements Closeable
 			throws Exception
 	{
 		List param = new Vector();
-		return JDAO.queryForKvMap(this.dbType, this.conn, this.queryRunner,  "SELECT "+c1+","+c2+" FROM "+table+" WHERE "+JDAO.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
+		return JDAO.queryForKvMap(this.dbType, this.conn, this.queryRunner,  "SELECT "+c1+","+c2+" FROM "+table+" WHERE "+JdaoUtils.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
 	}
 	
 	public  Map<String,String>
 	queryTemplateForKvMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
-		return queryTemplateForKvMap(table, c1, c2, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForKvMap(table, c1, c2, vm, suffixQuery, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String,String>
 	queryTemplateForKvMap(String table, String c1, String c2, Map<String,Object> vm) throws Exception
 	{
-		return queryTemplateForKvMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForKvMap(table, c1, c2, vm, null, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>> queryForKvListMap(String sql, Object... args)
@@ -1690,13 +1097,13 @@ public class JDAO implements Closeable
 	public Map<String,String>
 	queryScopeForKvMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
 	{
-		return this.queryTemplateForKvMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
+		return this.queryTemplateForKvMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, JdaoUtils.TEMPLATE_TYPE_EQUAL, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public Map<String, List<String>>
 	queryScopeForKvListMap(String table, String kvSF, String kvKF, String kvVF, String scopeId) throws Exception
 	{
-		return this.queryTemplateForKvListMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, TEMPLATE_TYPE_EQUAL, CONSTRAINT_ALL_OF);
+		return this.queryTemplateForKvListMap(table, kvKF, kvVF, JDAO.toMap(kvSF, scopeId), null, JdaoUtils.TEMPLATE_TYPE_EQUAL, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>>
@@ -1704,21 +1111,21 @@ public class JDAO implements Closeable
 			throws Exception
 	{
 		List param = new Vector();
-		return JDAO.queryForKvListMap(this.dbType, this.conn, this.queryRunner,  "SELECT "+c1+","+c2+" FROM "+table+" WHERE "+JDAO.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
+		return JDAO.queryForKvListMap(this.dbType, this.conn, this.queryRunner,  "SELECT "+c1+","+c2+" FROM "+table+" WHERE "+JdaoUtils.buildWhere(dbType, templateType, constraintType, param, vm)+(suffixQuery==null?"":" "+suffixQuery), param);
 	}
 	
 	public  Map<String, List<String>>
 	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,Object> vm, String suffixQuery)
 			throws Exception
 	{
-		return queryTemplateForKvListMap(table, c1, c2, vm, suffixQuery, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForKvListMap(table, c1, c2, vm, suffixQuery, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public  Map<String, List<String>>
 	queryTemplateForKvListMap(String table, String c1, String c2, Map<String,Object> vm)
 			throws Exception
 	{
-		return queryTemplateForKvListMap(table, c1, c2, vm, null, TEMPLATE_TYPE_AUTO, CONSTRAINT_ALL_OF);
+		return queryTemplateForKvListMap(table, c1, c2, vm, null, JdaoUtils.TEMPLATE_TYPE_AUTO, JdaoUtils.CONSTRAINT_ALL_OF);
 	}
 	
 	public  Object queryForScalar(String sql, Object... args)
@@ -1778,27 +1185,6 @@ public class JDAO implements Closeable
 			throws Exception
 	{
 		return JDAO.execute(this.dbType, this.conn, this.queryRunner, sql);
-	}
-	
-	public  int insertSet(String table, Map cols)
-			throws Exception
-	{
-		this.checkReadOnly();
-		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, false);
-	}
-	
-	public  int insertSet(String table, Map cols, boolean onDuplicateKeyUpdate)
-			throws Exception
-	{
-		this.checkReadOnly();
-		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate);
-	}
-	
-	public  int insertSet(String table, Map cols, boolean onDuplicateKeyUpdate, Collection updateCols)
-			throws Exception
-	{
-		this.checkReadOnly();
-		return JDAO.insertSet(this.dbType, this.conn, this.queryRunner, table, cols, onDuplicateKeyUpdate, updateCols);
 	}
 	
 	public  int insert(String table, Map cols)
@@ -2060,8 +1446,4 @@ public class JDAO implements Closeable
 			}
 		}
 	}
-	
-
-	
-
 }
