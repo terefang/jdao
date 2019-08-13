@@ -204,7 +204,7 @@ public class JdaoUtils
         properties.setProperty("username", _u);
         properties.setProperty("password", _p);
         properties.setProperty("url", _url);
-        properties.setProperty("driverClassName", _url);
+        properties.setProperty("driverClassName", _driver);
         return createDataSourceByProperties(properties);
     }
 

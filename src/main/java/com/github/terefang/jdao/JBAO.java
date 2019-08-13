@@ -28,7 +28,12 @@ public class JBAO
     }
 
     JDAO _dao = null;
-    
+
+    public JDAO getDAO()
+    {
+        return _dao;
+    }
+
     public interface IBean
     {
     }
