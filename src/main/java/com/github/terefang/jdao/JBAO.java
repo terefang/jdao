@@ -42,6 +42,13 @@ public class JBAO
 
     @Target(value= ElementType.FIELD)
     @Retention(value= RetentionPolicy.RUNTIME)
+    public @interface IBeanFieldType
+    {
+        String value();
+    }
+
+    @Target(value= ElementType.FIELD)
+    @Retention(value= RetentionPolicy.RUNTIME)
     public @interface IBeanID
     {
     }
@@ -217,6 +224,13 @@ public class JBAO
                 {
                     String _key = field.getAnnotation(IBeanField.class).value();
                     Object _val = FieldUtils.readField(field, _bean, true);
+
+                    if(field.isAnnotationPresent(IBeanFieldType.class) && "string".equalsIgnoreCase(field.getAnnotation(IBeanFieldType.class).value()))
+                    {
+                        _val = _val.toString();
+
+                    }
+
                     _ret.put(_key, _val);
                 }
             }
