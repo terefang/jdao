@@ -198,6 +198,30 @@ public class JdaoUtils
         }
     }
 
+    public static DataSource createDataSource(String _driver, String _url, String _u, String _p)
+    {
+        Properties properties = new Properties();
+        properties.setProperty("username", _u);
+        properties.setProperty("password", _p);
+        properties.setProperty("url", _url);
+        properties.setProperty("driverClassName", _url);
+        return createDataSourceByProperties(properties);
+    }
+
+    public static DataSource createDataSourceByProperties(Properties properties)
+    {
+        try
+        {
+            adjustPropertiesForEnvParameters(properties);
+            return (BasicDataSource) BasicDataSourceFactory.createDataSource(properties);
+        }
+        catch(Exception xe)
+        {
+            log("Error processing datasource ", xe);
+            return null;
+        }
+    }
+
     public static Connection createConnectionByDriverSpec(String driverclazz, String jdbcUri, String userName, String password)
     {
         try

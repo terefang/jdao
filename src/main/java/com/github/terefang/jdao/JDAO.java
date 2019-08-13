@@ -599,12 +599,13 @@ public class JDAO implements Closeable
 		Vector parm = new Vector();
 
 		StringBuilder qq=new StringBuilder();
-		qq.append("INSERT INTO "+table+" SET ");
+		qq.append("INSERT INTO "+table+" ( ");
 
 		boolean op = true;
 		for(Object kv : cols.entrySet())
 		{
-			parm.add(((Map.Entry)kv).getValue());
+			Object _val = ((Map.Entry) kv).getValue();
+			parm.add(_val);
 			if(!op)
 			{
 				qq.append(",");

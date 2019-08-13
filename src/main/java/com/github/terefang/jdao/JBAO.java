@@ -189,7 +189,7 @@ public class JBAO
     {
         Map<String,Object> _ret = new HashMap();
         List<Field> fields = FieldUtils.getFieldsListWithAnnotation(_beanClazz, IBeanID.class);
-        if(fields.size()>0)
+        if(fields.size()==0)
         {
             throw new IllegalArgumentException("improper IBeanID annotation");
         }
