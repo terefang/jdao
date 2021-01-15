@@ -316,45 +316,40 @@ public class JdaoUtils
      */
     public static String buildWhereLike(int dbType, int constraintType, List param, Map<String,Object> vm)
     {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        int pNum = param.size();
-
-        if(vm.keySet().size() > 0)
-        {
-            sb.append(" ( ");
-            for(String k : vm.keySet())
-            {
-                String v = vm.get(k).toString();
-                if(v!="" && v!="*" && v!="%")
-                {
-                    if(first)
-                    {
-                        sb.append(" ("+likeOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else if(constraintType==CONSTRAINT_ALL_OF)
-                    {
-                        sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else if(constraintType==CONSTRAINT_ANY_OF)
-                    {
-                        sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else
-                    {
-                        sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    param.add(v);
-                    first=false;
-                }
-            }
-            sb.append(" ) ");
-        }
-
-        if(pNum == param.size())
+        if(vm.size()==0)
         {
             return " TRUE ";
         }
+
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        sb.append(" ( ");
+        for(String k : vm.keySet())
+        {
+            String v = vm.get(k).toString();
+            if(v!="" && v!="*" && v!="%")
+            {
+                if(first)
+                {
+                    sb.append(" ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else if(constraintType==CONSTRAINT_ALL_OF)
+                {
+                    sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else if(constraintType==CONSTRAINT_ANY_OF)
+                {
+                    sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else
+                {
+                    sb.append(" OR ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                }
+                param.add(v);
+                first=false;
+            }
+        }
+        sb.append(" ) ");
 
         return(sb.toString());
     }
@@ -445,45 +440,41 @@ public class JdaoUtils
      */
     public static String buildWhereRegexp(int dbType, int constraintType, List param, Map<String,Object> vm)
     {
-        StringBuilder sb = new StringBuilder();
-        boolean first = true;
-        int pNum = param.size();
-
-        if(vm.keySet().size() > 0)
-        {
-            sb.append(" ( ");
-            for(String k : vm.keySet())
-            {
-                String v = vm.get(k).toString();
-                if(v!="" && v!="*" && v!=".*")
-                {
-                    if(first)
-                    {
-                        sb.append(" ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else if(constraintType==CONSTRAINT_ALL_OF)
-                    {
-                        sb.append(" AND ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else if(constraintType==CONSTRAINT_ANY_OF)
-                    {
-                        sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    else
-                    {
-                        sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
-                    }
-                    param.add(v);
-                    first=false;
-                }
-            }
-            sb.append(" ) ");
-        }
-
-        if(pNum == param.size())
+        if(vm.size()==0)
         {
             return " TRUE ";
         }
+
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+
+        sb.append(" ( ");
+        for(String k : vm.keySet())
+        {
+            String v = vm.get(k).toString();
+            if(v!="" && v!="*" && v!=".*")
+            {
+                if(first)
+                {
+                    sb.append(" ("+regexpOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else if(constraintType==CONSTRAINT_ALL_OF)
+                {
+                    sb.append(" AND ("+regexpOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else if(constraintType==CONSTRAINT_ANY_OF)
+                {
+                    sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
+                }
+                else
+                {
+                    sb.append(" OR ("+regexpOpPerDbType(dbType, k, "?", false)+")");
+                }
+                param.add(v);
+                first=false;
+            }
+        }
+        sb.append(" ) ");
 
         return(sb.toString());
     }
@@ -493,24 +484,29 @@ public class JdaoUtils
      * create a where statement-fragment and parameter-list from a column-map, template-type and constraint-type.
      *
      */
+    public static String buildWhere(int dbType, int templateType, List param, Map<String,Object> template)
+    {
+        return buildWhere(dbType, templateType, CONSTRAINT_ANY_OF, param, template);
+    }
+
     public static String buildWhere(int dbType, int templateType, int constraintType, List param, Map<String,Object> template)
     {
         switch(templateType)
         {
             case TEMPLATE_TYPE_AUTO:
-                return buildWhereAuto(dbType, param, template);
+                return buildWhereAuto(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_EQUAL:
-                return buildWhereEqual(dbType, param, template);
+                return buildWhereEqual(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_NOT_EQUAL:
-                return buildWhereNotEqual(dbType, param, template);
+                return buildWhereNotEqual(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_LIKE:
                 return buildWhereLike(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_REGEX:
                 return buildWhereRegexp(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_STARTSWITH:
-                return buildWherePrefix(dbType, param, template);
+                return buildWherePrefix(dbType, constraintType, param, template);
             case TEMPLATE_TYPE_SUBSTRING:
-                return buildWhereSubstr(dbType, param, template);
+                return buildWhereSubstr(dbType, constraintType, param, template);
             default:
                 return buildWhereLike(dbType, constraintType, param, template);
         }
@@ -536,11 +532,16 @@ public class JdaoUtils
         {
             String[] list = s.split("[,;]");
 
-            sb.append(" ("+(invert ? " TRUE":" FALSE"));
+            sb.append(" (");
 
+            boolean first = true;
             for(String item : list)
             {
-                sb.append(invert ? " AND": " OR");
+                if(!first)
+                {
+                    sb.append(invert ? " AND ": " OR ");
+                }
+
                 if(s.charAt(0)=='+')
                 {
                     parseSpec_(dbType, sb, param, k, item.substring(1), invert);
@@ -553,6 +554,7 @@ public class JdaoUtils
                 {
                     parseSpec_(dbType, sb, param, k, item, invert);
                 }
+                first = false;
             }
 
             sb.append(")");
@@ -613,16 +615,33 @@ public class JdaoUtils
 
     public static String buildWhereAuto(int dbType, List param, Map<String,Object> vm)
     {
+        return buildWhereAuto(dbType, CONSTRAINT_ALL_OF, param, vm);
+    }
+
+    public static String buildWhereAuto(int dbType, int constraintType, List param, Map<String,Object> vm)
+    {
+        if(vm.size()==0)
+        {
+            return " TRUE ";
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append(" TRUE ");
+        boolean first = true;
         for(String k : vm.keySet())
         {
             Object v = vm.get(k);
             if((v instanceof String) && v.toString()!="")
             {
-                sb.append(" AND ");
+                if(!first) {
+                    if (constraintType == CONSTRAINT_ALL_OF) {
+                        sb.append(" AND ");
+                    } else {
+                        sb.append(" OR ");
+                    }
+                }
                 parseSpec(dbType, sb, param, k, v.toString());
+                first = false;
             }
         }
         return(sb.toString());
@@ -630,16 +649,38 @@ public class JdaoUtils
 
     public static String buildWhereEqual(int dbType, List param, Map<String,Object> vm)
     {
+        return buildWhereEqual(dbType, CONSTRAINT_ALL_OF, param, vm);
+    }
+
+    public static String buildWhereEqual(int dbType, int constraintType, List param, Map<String,Object> vm)
+    {
+        if(vm.size()==0)
+        {
+            return " TRUE ";
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append(" TRUE ");
+        boolean first = true;
         for(String k : vm.keySet())
         {
             Object v = vm.get(k);
             if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
             {
-                sb.append(" AND ("+k+" = ?)");
+                if(!first)
+                {
+                    if(constraintType == CONSTRAINT_ALL_OF)
+                    {
+                        sb.append(" AND ");
+                    }
+                    else
+                    {
+                        sb.append(" OR ");
+                    }
+                }
+                sb.append("("+k+" = ?)");
                 param.add(v);
+                first = false;
             }
         }
         return(sb.toString());
@@ -647,16 +688,34 @@ public class JdaoUtils
 
     public static String buildWhereNotEqual(int dbType, List param, Map<String,Object> vm)
     {
+        return buildWhereEqual(dbType, CONSTRAINT_ALL_OF, param, vm);
+    }
+
+    public static String buildWhereNotEqual(int dbType, int constraintType, List param, Map<String,Object> vm)
+    {
+        if(vm.size()==0)
+        {
+            return " TRUE ";
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append(" TRUE ");
+        boolean first = true;
         for(String k : vm.keySet())
         {
             Object v = vm.get(k);
             if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
             {
-                sb.append(" AND ("+k+" != ?)");
+                if(!first) {
+                    if (constraintType == CONSTRAINT_ALL_OF) {
+                        sb.append(" AND ");
+                    } else {
+                        sb.append(" OR ");
+                    }
+                }
+                sb.append("(" + k + " != ?)");
                 param.add(v);
+                first = false;
             }
         }
         return(sb.toString());
@@ -664,16 +723,35 @@ public class JdaoUtils
 
     public static String buildWhereSubstr(int dbType, List param, Map<String,Object> vm)
     {
+        return buildWhereSubstr(dbType, CONSTRAINT_ALL_OF, param, vm);
+    }
+
+    public static String buildWhereSubstr(int dbType, int constraintType, List param, Map<String,Object> vm)
+    {
+        if(vm.size()==0)
+        {
+            return " TRUE ";
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append(" TRUE ");
+        boolean first = true;
         for(String k : vm.keySet())
         {
             Object v = vm.get(k);
             if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
             {
-                sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                if(!first) {
+                    if (constraintType == CONSTRAINT_ALL_OF) {
+                        sb.append(" AND ");
+                    } else {
+                        sb.append(" OR ");
+                    }
+                }
+                sb.append("("+likeOpPerDbType(dbType, k, "?", false)+")");
+
                 param.add("%"+v+"%");
+                first = false;
             }
         }
         return(sb.toString());
@@ -681,16 +759,34 @@ public class JdaoUtils
 
     public static String buildWherePrefix(int dbType, List param, Map<String,Object> vm)
     {
+        return buildWherePrefix(dbType, CONSTRAINT_ALL_OF, param, vm);
+    }
+
+    public static String buildWherePrefix(int dbType, int constraintType, List param, Map<String,Object> vm)
+    {
+        if(vm.size()==0)
+        {
+            return " TRUE ";
+        }
+
         StringBuilder sb = new StringBuilder();
 
-        sb.append(" TRUE ");
+        boolean first = true;
         for(String k : vm.keySet())
         {
             Object v = vm.get(k);
             if(v!=null && !((v instanceof String) && (v.toString().equals(""))))
             {
-                sb.append(" AND ("+likeOpPerDbType(dbType, k, "?", false)+")");
+                if(!first) {
+                    if (constraintType == CONSTRAINT_ALL_OF) {
+                        sb.append(" AND ");
+                    } else {
+                        sb.append(" OR ");
+                    }
+                }
+                sb.append("("+likeOpPerDbType(dbType, k, "?", false)+")");
                 param.add(v+"%");
+                first = false;
             }
         }
         return(sb.toString());
