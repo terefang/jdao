@@ -613,6 +613,21 @@ public class JdaoUtils
     }
 
 
+    public static String buildWhereAuto(int dbType, List param, String _key, String _value)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if(!_value.contentEquals(""))
+        {
+            parseSpec(dbType, sb, param, _key, _value);
+        }
+        else
+        {
+            sb.append(" TRUE ");
+        }
+        return(sb.toString());
+    }
+
     public static String buildWhereAuto(int dbType, List param, Map<String,Object> vm)
     {
         return buildWhereAuto(dbType, CONSTRAINT_ALL_OF, param, vm);
